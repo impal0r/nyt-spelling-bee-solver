@@ -1,0 +1,22 @@
+{
+    "permissions": {
+        "deny": [
+            "Bash(sudo:*)",
+            "Bash(rm -rf:*)",
+            "Read(.env*)",
+            "Read(./secrets/**)",
+            "Read(../**)"
+        ],
+        "ask": [
+            "Bash(rm:*)",
+            "Bash(curl:*)",
+            "Bash(chmod:*)",
+            "Bash(git push:*)",
+            "Bash(git publish:*)",
+            "Bash(git merge:*)",
+            "Bash(git reset:*)"
+        ],
+        "disableBypassPermissionsMode": "disable",
+        "defaultMode": "acceptEdits"
+    }
+}
