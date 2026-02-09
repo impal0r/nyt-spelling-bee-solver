@@ -48,51 +48,49 @@ Other words:
 
 In this project, the aim is to find ALL words which would solve the puzzle. We have two wordlists for this purpose:
 
-1. words_alpha.txt
+### 1. words_alpha.txt (~370k words)
 
-This is from https://github.com/dwyl/english-words, with original credit to InfoChimps at
+**Source:** https://github.com/dwyl/english-words, with original credit to InfoChimps at
 https://web.archive.org/web/20131118073324/https://www.infochimps.com/datasets/word-list-350000-simple-english-words-excel-readable (archived).
 
-words_alpha.txt is an all-encompassing wordlist for spellcheckers, filtered to include words only made up of letters (no hyphens or other symbols).
+**File format:** Plain text, one lowercase word per line. No metadata or annotations. Can be read directly with simple line-by-line parsing.
+
+**Content:** An all-encompassing wordlist for spellcheckers, filtered to include words only made up of letters (no hyphens or other symbols).
 It lists a lot of words which would never show up in a dictionary.
 
-2. en_US.dic (and the associated file en_US.aff)
+### 2. en_US.dic + en_US.aff (~49k stems, expands to many more words)
 
-This is an open-source English word list downloaded from http://wordlist.aspell.net/dicts/, and they are the "normal size" dictionaries (SCOWL size 60).
+**Source:** Open-source English word list downloaded from http://wordlist.aspell.net/dicts/, "normal size" dictionaries (SCOWL size 60).
 
-This list has been carefully filtered to contain only dictionary words, in their US English spellings.
+**Content:** Carefully filtered to contain only dictionary words, in their US English spellings.
+
+**File format:** These are Hunspell dictionary files, used by spellcheckers in LibreOffice, Firefox, Chrome, etc. The two files work together:
+
+- **en_US.dic** contains word stems with optional affix flags after a `/`. The first line is the approximate word count. Examples:
+  - `abandon/LSDG` — the stem "abandon" with suffix flags L, S, D, G
+  - `abacus/MS` — the stem "abacus" with suffix flags M, S
+  - `AAA` — a word with no affix flags (used as-is)
+
+- **en_US.aff** defines affix rules that the flags refer to. Each rule specifies how to transform a stem into inflected forms. For example:
+  - Flag `S` defines pluralisation rules (e.g. add "s", or replace "y" with "ies")
+  - Flag `G` defines "-ing" suffixation (e.g. strip "e" and add "ing", or just add "ing")
+  - Flag `D` defines past tense rules (e.g. add "d", add "ed", replace "y" with "ied")
+  - Prefix flags like `A` (re-), `U` (un-), `I` (in-) add common prefixes
+
+**Implication for this project:** To get the full set of dictionary words, we need to expand the stems using the affix rules. For example, `abandon/LSDG` expands to: abandon, abandons, abandoned, abandoning, etc. We should either use a Hunspell library (e.g. `spylls` — a pure-Python Hunspell implementation) or write our own affix expansion logic.
 
 ### Why two word lists?
 
-So why two word lists? In an ideal world, we could personalise the word list for every user. Then, everyone would be able to find all the words they already know and love,
-and maybe learn one or two new ones. However, this is out of scope for this little project.
+We want to output a list of common, familiar dictionary words, followed by less common words that the user might also know. This mirrors the NYT Spelling Bee experience (which uses a curated dictionary) while going a step further to capture words the NYT list might miss.
 
-Using the biggest word list possible would mean we wouldn't miss any words that a given user knows and likes. However, that would also
-mean we include lots of rare, outdated, or jargon words that would confuse most people and take away from the joy of finding familiar words in the puzzle. What we really want is
-to output a list of common, mostly familiar words, followed by other words that the user might also know. This way, users can focus on the common words, looking up ones
-they don't already know. Then, they can scan through the list of uncommon words, picking out a few that they like.
+- **en_US.dic** provides the "dictionary words" — common, widely-recognised words that form the core results.
+- **words_alpha.txt** provides a broad net to catch any remaining valid words, including domain-specific or uncommon words that might still be familiar to some users.
 
-The dictionary wordlist plays the role of the list of common words. The designers of the original NYT Spelling Bee game stopped here, picking a single dictionary list for
-everyone to play with. This ensured consistency and kept the game closed-ended, allowing for a carefully curated and clean experience. The NYT probably uses a slightly different
-word list to the open-source one we have, but that doesn't matter.
+No single word list is perfect for everyone, since vocabulary is personal and shaped by background, profession, and interests. Using two tiers lets users focus on the common words first, then scan the broader list for any they recognise.
 
-We go one step further and include a very broad list of all English words. This makes our suggested solutions more open-ended, but allows us to capture all possible words,
-making sure we don't miss any out.
+## Implementation considerations
 
-### General thoughts about language - or a long justification for including the big wordlist
-
-Language is a cultural phenomenon, and every person acquires words from those around them based on the communities they interact with and the activities they take part in.
-For example, software developers are likely to know a different set of words to historians. Despite this, there is a common set of English words that is shared
-between most of us, except for a few regional differences. Dictionary editors pick a certain set of words that are deemed to be in common use, based on a threshold for
-how frequently they appear in writing, meaning anyone reading a dictionary will likely know some words that the dictionary doesn't contain. Of course, the dictionary might
-in turn contain words that a given reader might not know.
-
-I refrained from using the word jargon in the last paragraph. Jargon refers to words that are only used within a specific field, like software development. The word "jargon" often
-has a negative connotation, because people outside the field use "jargon" to refer to words they don't understand and that they want software developers to stop
-using around them. And I agree: when speaking to someone, it's a good idea to pick words that the other person will understand. However, that's not a reason to hate on all
-jargon. People create words to talk about shared concepts, and software developers have plenty of shared concepts they need to talk about at work. Moreover, jargon
-words often end up diffusing into general usage. Even before they do, they end up forming part of everyday lexicon for the people in the field. This just means that
-software developers end up with their own mini-dialect, in a similar way to regional dialects like the English spoken in Scotland. There's nothing wrong with this: language
-is a continuum, and personal preference plays a big role in which words someone chooses to include in their repertoire.
-
-This is all to say that even the weirdest words in the big broad wordlist might be someone's favourite word that they use every day, so it's worth including.
+- **Hunspell expansion:** Processing en_US.dic requires expanding stems with affix rules from en_US.aff. Evaluate whether a library like `spylls` is suitable, or whether a simpler custom parser covering the subset of rules in our .aff file would suffice.
+- **Word filtering:** Both wordlists may contain uppercase entries (proper nouns, acronyms). The Spelling Bee only uses lowercase common words, so these should be filtered out.
+- **Deduplication:** Words appearing in both lists should only be shown in the "Dictionary words" section, not repeated in "Other words".
+- **Performance:** words_alpha.txt is ~4MB. For a CLI tool, loading time should still be fast, but if it becomes a concern, consider pre-filtering or indexing.
