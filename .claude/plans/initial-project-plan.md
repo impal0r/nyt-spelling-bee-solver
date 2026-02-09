@@ -38,6 +38,8 @@ Dictionary words:
   ...
 Other words:
   ...
+Proper nouns:
+  ...
 ```
 
 - Words could be output on separate lines, or perhaps in a grid. Alphabetical order is desirable in each section.
@@ -91,6 +93,6 @@ No single word list is perfect for everyone, since vocabulary is personal and sh
 ## Implementation considerations
 
 - **Hunspell expansion:** Processing en_US.dic requires expanding stems with affix rules from en_US.aff. Evaluate whether a library like `spylls` is suitable, or whether a simpler custom parser covering the subset of rules in our .aff file would suffice.
-- **Word filtering:** Both wordlists may contain uppercase entries (proper nouns, acronyms). The Spelling Bee only uses lowercase common words, so these should be filtered out.
+- **Word filtering:** Both wordlists contain uppercase entries. Acronyms (e.g. "ABC", "ACLU") should be excluded entirely. Proper nouns (e.g. "Alice", "Liverpool") should be collected separately and displayed in their own "Proper nouns" section — they wouldn't count in the real puzzle, but they're fun to see.
 - **Deduplication:** Words appearing in both lists should only be shown in the "Dictionary words" section, not repeated in "Other words".
-- **Performance:** words_alpha.txt is ~4MB. For a CLI tool, loading time should still be fast, but if it becomes a concern, consider pre-filtering or indexing.
+- **Performance:** Not a primary concern. Up to ~10 seconds per run is acceptable. No need to optimise for speed unless it exceeds that threshold.
