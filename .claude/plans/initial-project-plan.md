@@ -4,9 +4,13 @@ Inputs:
 - The 7 letters in the puzzle
 - The "main" letter (this will always be given as the first one of the seven)
 
-Outputs:
-- A list of verified US English words which solve the puzzle (these come from the wordlist in en_US.dic)
-- A list of unverified English words which solve the puzzle (these come from the wordlist in words_alpha.txt)
+Outputs (in order):
+- Pangrams (words using all 7 letters)
+- Common words (from `wordlists/en_US_common.txt`)
+- Profanity (from `wordlists/en_US_profanity.txt`, opt-in with `--show-profanity`)
+- Proper nouns (from `wordlists/en_US_proper_nouns.txt`)
+- Acronyms (from `wordlists/en_US_acronyms.txt`, opt-out with `--no-acronyms`)
+- Other words (from `wordlists/words_alpha.txt`, excluding words already shown)
 
 ## Puzzle rules
 
@@ -34,23 +38,50 @@ Outputs:
 ```
 Pangrams:
   ...
-Dictionary words:
+Common words:
   ...
-Other words:
+Profanity:           (only shown with --show-profanity flag)
   ...
 Proper nouns:
   ...
+Acronyms:            (hidden with --no-acronyms flag)
+  ...
+Other words:
+  ...
 ```
 
+- Sections appear in the order above. Each section only lists words not already shown in a prior section.
 - Words could be output on separate lines, or perhaps in a grid. Alphabetical order is desirable in each section.
 - Pangrams should be on separate lines - there are usually one or two, perhaps up to five, so they won't take up much space.
-- The words are indented by two spaces, maintaining a hierarchical structure with the three headings.
+- The words are indented by two spaces, maintaining a hierarchical structure with the headings.
+- **`--show-profanity`**: Include profanity section (excluded by default).
+- **`--no-acronyms`**: Exclude acronyms section (included by default).
+- "Other words" contains anything from words_alpha.txt not already covered by earlier sections.
 
 ## Wordlists
 
-In this project, the aim is to find ALL words which would solve the puzzle. We have two wordlists for this purpose:
+All wordlist files live in the `wordlists/` directory.
 
-### 1. words_alpha.txt (~370k words)
+In this project, the aim is to find ALL words which would solve the puzzle. We use two sources for this purpose:
+
+### Source 1: Hunspell dictionary (en_US.dic + en_US.aff)
+
+**Source:** Open-source English word list downloaded from http://wordlist.aspell.net/dicts/, "normal size" dictionaries (SCOWL size 60). These are Hunspell dictionary files, used by spellcheckers in LibreOffice, Firefox, Chrome, etc.
+
+**Conversion:** `convert_dic.py` expands the Hunspell stems using affix rules and produces four plain-text wordlists, classified by stem case. The converter has been verified against spylls (an independent Hunspell implementation) with zero discrepancies. Run it with: `python convert_dic.py wordlists/en_US`
+
+**Output files (plain text, one word per line, sorted case-insensitively):**
+
+| File | Content | Count |
+|------|---------|-------|
+| `en_US_common.txt` | Common words from lowercase stems | ~78k |
+| `en_US_proper_nouns.txt` | Proper nouns and brand names (any stem with uppercase that isn't all-caps: title case, camelCase, etc.) | ~11k |
+| `en_US_acronyms.txt` | Acronyms from all-caps stems (e.g. NASA, FBI) | ~700 |
+| `en_US_profanity.txt` | Words from NOSUGGEST-flagged stems | ~50 |
+
+Single-letter words are excluded from all lists. When a word is produced by multiple stems with different classifications, higher-priority categories win (profanity > acronyms > proper nouns > common).
+
+### Source 2: words_alpha.txt (~370k words)
 
 **Source:** https://github.com/dwyl/english-words, with original credit to InfoChimps at
 https://web.archive.org/web/20131118073324/https://www.infochimps.com/datasets/word-list-350000-simple-english-words-excel-readable (archived).
@@ -60,39 +91,17 @@ https://web.archive.org/web/20131118073324/https://www.infochimps.com/datasets/w
 **Content:** An all-encompassing wordlist for spellcheckers, filtered to include words only made up of letters (no hyphens or other symbols).
 It lists a lot of words which would never show up in a dictionary.
 
-### 2. en_US.dic + en_US.aff (~49k stems, expands to many more words)
-
-**Source:** Open-source English word list downloaded from http://wordlist.aspell.net/dicts/, "normal size" dictionaries (SCOWL size 60).
-
-**Content:** Carefully filtered to contain only dictionary words, in their US English spellings.
-
-**File format:** These are Hunspell dictionary files, used by spellcheckers in LibreOffice, Firefox, Chrome, etc. The two files work together:
-
-- **en_US.dic** contains word stems with optional affix flags after a `/`. The first line is the approximate word count. Examples:
-  - `abandon/LSDG` — the stem "abandon" with suffix flags L, S, D, G
-  - `abacus/MS` — the stem "abacus" with suffix flags M, S
-  - `AAA` — a word with no affix flags (used as-is)
-
-- **en_US.aff** defines affix rules that the flags refer to. Each rule specifies how to transform a stem into inflected forms. For example:
-  - Flag `S` defines pluralisation rules (e.g. add "s", or replace "y" with "ies")
-  - Flag `G` defines "-ing" suffixation (e.g. strip "e" and add "ing", or just add "ing")
-  - Flag `D` defines past tense rules (e.g. add "d", add "ed", replace "y" with "ied")
-  - Prefix flags like `A` (re-), `U` (un-), `I` (in-) add common prefixes
-
-**Implication for this project:** To get the full set of dictionary words, we need to expand the stems using the affix rules. For example, `abandon/LSDG` expands to: abandon, abandons, abandoned, abandoning, etc. We should either use a Hunspell library (e.g. `spylls` — a pure-Python Hunspell implementation) or write our own affix expansion logic.
-
-### Why two word lists?
+### Why two sources?
 
 We want to output a list of common, familiar dictionary words, followed by less common words that the user might also know. This mirrors the NYT Spelling Bee experience (which uses a curated dictionary) while going a step further to capture words the NYT list might miss.
 
-- **en_US.dic** provides the "dictionary words" — common, widely-recognised words that form the core results.
-- **words_alpha.txt** provides a broad net to catch any remaining valid words, including domain-specific or uncommon words that might still be familiar to some users.
+- **en_US wordlists** provide the core results — common words, proper nouns, acronyms, and profanity, all from a curated dictionary.
+- **words_alpha.txt** provides a broad net to catch any remaining valid words (shown in the "Other words" section), including domain-specific or uncommon words that might still be familiar to some users.
 
-No single word list is perfect for everyone, since vocabulary is personal and shaped by background, profession, and interests. Using two tiers lets users focus on the common words first, then scan the broader list for any they recognise.
+No single word list is perfect for everyone, since vocabulary is personal and shaped by background, profession, and interests. Using multiple tiers lets users focus on the common words first, then scan the broader list for any they recognise.
 
 ## Implementation considerations
 
-- **Hunspell expansion:** Processing en_US.dic requires expanding stems with affix rules from en_US.aff. Evaluate whether a library like `spylls` is suitable, or whether a simpler custom parser covering the subset of rules in our .aff file would suffice.
-- **Word filtering:** Both wordlists contain uppercase entries. Acronyms (e.g. "ABC", "ACLU") should be excluded entirely. Proper nouns (e.g. "Alice", "Liverpool") should be collected separately and displayed in their own "Proper nouns" section — they wouldn't count in the real puzzle, but they're fun to see.
-- **Deduplication:** Words appearing in both lists should only be shown in the "Dictionary words" section, not repeated in "Other words".
+- **Hunspell expansion:** Done. `convert_dic.py` is a verified custom parser that expands en_US.dic stems using affix rules from en_US.aff. It handles PFX/SFX rules, cross-product (only when both prefix and suffix allow it), NOSUGGEST, and ONLYINCOMPOUND flags. Cross-validated against spylls with zero discrepancies.
+- **Deduplication:** Each output section should only show words not already listed in a prior section.
 - **Performance:** Not a primary concern. Up to ~10 seconds per run is acceptable. No need to optimise for speed unless it exceeds that threshold.

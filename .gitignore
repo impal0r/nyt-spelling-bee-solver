@@ -1,0 +1,11 @@
+# Python temp and local files
+**/__pycache__
+.pytest_cache
+.ruff_cache
+.venv
+
+# Other temp files
+*.local
+
+# Development
+.vscode

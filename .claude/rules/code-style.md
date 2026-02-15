@@ -30,10 +30,11 @@ def process(items: List[str]) -> Dict[str, int]:
 - Keep related functionality together; split when modules grow too large
 - Modules are `.py` files in the project directory
 - If there are more than 10-20 modules, consider grouping them into folders
+- Each module should have a script which tests its functions, with a filename which mirrors that of the script under test, e.g. "test_formatter.py" tests "formatter.py". All the test scripts should be in a separate "test" directory.
 
 ## Imports
 
-Imports go at the top of the file, separated into three sections with comments:
+Imports go at the top of the file, separated into up to four sections with comments:
 
 ```python
 # Standard library
@@ -41,8 +42,10 @@ import os
 from dataclasses import dataclass
 
 # Third-party libraries
-import flask
-from dotenv import load_dotenv
+import numpy as np
+
+# Submodule imports
+from flying_squirrels import PowerController
 
 # Local imports
 from .utils import get_user_choice
@@ -57,6 +60,9 @@ Every module starts with a brief docstring:
 ```python
 [utils.py]
 """A place to put generally useful functions and classes."""
+
+[voltage_sweep.py]
+"""Measure the current through a load at a range of voltages."""
 ```
 
 ### Function/Class Docstrings
@@ -114,25 +120,23 @@ dice_counts = [game_state.dice_on_table.count(n) for n in range(1, 7)]
 # ^ comment suggests how to use dice_counts in subsequent code
 
 # EVEN BETTER EXAMPLE:
-# Precalculate how many of each number is on the table
+# Precalculate how many of each number is on the table (1 to 6 inclusive)
 dice_counts = {n: game_state.dice_on_table.count(n) for n in range(1, 7)}
 # ^ off-by-one confusion is eliminated by using a dict, and
 #   the comment explains the context & design intent behind this line of code
 ```
 
-Remember, comments are intended for people who are fluent in the programming language, but not necessarily familiar with the application domain, or project-specific design choices and conventions.
+Remember, comments are intended for people who are fluent in the programming language, but not necessarily familiar with the application domain or project-specific design choices and conventions.
 
 ### Variable naming
 
 Variable names should aim to be specific and descriptive, but limit them to around 3 words unless absolutely necessary. Don't over-specify: names should align with the application-specificity of a particular bit of code.
 
-For example, a function that can sort any container should just be called "sort", but a class method that sorts `Listing`'s by price should be called "Listing.sort_by_price".
-
-All variable names should be descriptive, but an important exception is loop counters: in simple loops or list comprehensions, these can just be called `i`, `j`, `k` in the order of nesting.
+An important exception is loop counters: in simple loops or list comprehensions, these can just be called `i`, `j`, `k` in the order of nesting.
 
 ```python
 # Example where using `i` as a loop counter doesn't make sense:
-# Graphics rendering loop: complex and unusual logic
+# This graphics rendering loop has complex and unusual logic
 # Each loop iteration represents something specific: a frame
 # Use a descriptive variable name for the loop counter
 #*******************************
@@ -158,7 +162,7 @@ for frame_counter in range(num_frames):
 # The loop counter doesn't mean anything other than being a
 # throwaway index into the list
 # In this case, we also can't use the `for request in current_requests`
-# syntax, because the list is modified inside the loop
+# pattern, because the list is modified inside the loop
 #*******************************
 # Delete expired requests
 i = 0
@@ -167,6 +171,7 @@ while i < len(current_requests):
         current_requests.pop(i)
     else:
         i += 1
+#*******************************
 ```
 
 ## Section Separators (Optional)
@@ -174,11 +179,17 @@ while i < len(current_requests):
 For longer files, use 80-character section separators with centered titles:
 
 ```python
-# --------------------------------- CONSTANTS ----------------------------------
+# -------------------------------- CMDLINE ARGS -------------------------------
 
-# ------------------------------ HELPER FUNCTIONS ------------------------------
+...
 
-# -------------------------------- PUBLIC API ----------------------------------
+# -------------------------------- LOAD CONFIG --------------------------------
+
+...
+
+# ------------------------------ SEARCH FOR WORDS -----------------------------
+
+...
 ```
 
 ## Important notes
