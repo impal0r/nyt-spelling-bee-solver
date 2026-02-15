@@ -9,7 +9,7 @@ Outputs (in order):
 - Common words (from `wordlists/en_US_common.txt`)
 - Profanity (from `wordlists/en_US_profanity.txt`, opt-in with `--show-profanity`)
 - Proper nouns (from `wordlists/en_US_proper_nouns.txt`)
-- Acronyms (from `wordlists/en_US_acronyms.txt`, opt-out with `--no-acronyms`)
+- Acronyms (from `wordlists/en_US_acronyms.txt`, opt-out with `--hide-acronyms`)
 - Other words (from `wordlists/words_alpha.txt`, excluding words already shown)
 
 ## Puzzle rules
@@ -44,7 +44,7 @@ Profanity:           (only shown with --show-profanity flag)
   ...
 Proper nouns:
   ...
-Acronyms:            (hidden with --no-acronyms flag)
+Acronyms:            (hidden with --hide-acronyms flag)
   ...
 Other words:
   ...
@@ -55,7 +55,7 @@ Other words:
 - Pangrams should be on separate lines - there are usually one or two, perhaps up to five, so they won't take up much space.
 - The words are indented by two spaces, maintaining a hierarchical structure with the headings.
 - **`--show-profanity`**: Include profanity section (excluded by default).
-- **`--no-acronyms`**: Exclude acronyms section (included by default).
+- **`--hide-acronyms`**: Exclude acronyms section (included by default).
 - "Other words" contains anything from words_alpha.txt not already covered by earlier sections.
 
 ## Wordlists

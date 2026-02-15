@@ -69,7 +69,7 @@ class TestParseArgs:
         args = parse_args(["LAERTIV"])
         assert args.letters == "LAERTIV"
         assert args.show_profanity is False
-        assert args.no_acronyms is False
+        assert args.hide_acronyms is False
 
     def test_lowercase_input_uppercased(self):
         args = parse_args(["laertiv"])
@@ -79,9 +79,9 @@ class TestParseArgs:
         args = parse_args(["LAERTIV", "--show-profanity"])
         assert args.show_profanity is True
 
-    def test_no_acronyms_flag(self):
-        args = parse_args(["LAERTIV", "--no-acronyms"])
-        assert args.no_acronyms is True
+    def test_hide_acronyms_flag(self):
+        args = parse_args(["LAERTIV", "--hide-acronyms"])
+        assert args.hide_acronyms is True
 
     def test_wrong_letter_count(self):
         with pytest.raises(SystemExit):
@@ -178,12 +178,12 @@ class TestSolve:
         """Acronyms section should be present when there are matching acronyms."""
         # Use a puzzle likely to have acronym matches
         result = solve("NAISCOT")
-        # Whether or not there are acronym matches, no_acronyms=False is the default
+        # Whether or not there are acronym matches, hide_acronyms==False is the default
         # Just verify solve runs and returns valid structure
         assert "Pangrams" in result
 
     def test_acronyms_hidden_with_flag(self):
-        result = solve("LAERTIV", no_acronyms=True)
+        result = solve("LAERTIV", hide_acronyms=True)
         assert "Acronyms" not in result
 
     def test_all_words_at_least_four_letters(self):

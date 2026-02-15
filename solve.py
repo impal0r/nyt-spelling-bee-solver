@@ -1,6 +1,6 @@
 """NYT Spelling Bee solver — find all valid words for a given puzzle."""
 
-# Standard library
+# Standard library imports
 import argparse
 from pathlib import Path
 
@@ -14,7 +14,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         argv: Argument list (defaults to sys.argv[1:]).
 
     Returns:
-        Parsed namespace with letters, show_profanity, and no_acronyms.
+        Parsed namespace with letters, show_profanity, and hide_acronyms.
     """
     parser = argparse.ArgumentParser(
         description="Solve NYT Spelling Bee puzzles.",
@@ -30,7 +30,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Include profanity section in output",
     )
     parser.add_argument(
-        "--no-acronyms",
+        "--hide-acronyms",
         action="store_true",
         default=False,
         help="Exclude acronyms section from output",
@@ -96,22 +96,23 @@ def is_pangram(word: str, letter_set: set[str]) -> bool:
         letter_set: Set of 7 allowed letters (lowercase).
 
     Returns:
-        True if the word contains every letter in the set.
+        True if the word contains every letter in the set
+        (and no others).
     """
-    return set(word.lower()) >= letter_set
+    return set(word.lower()) == letter_set
 
 
 def solve(
     letters: str,
     show_profanity: bool = False,
-    no_acronyms: bool = False,
+    hide_acronyms: bool = False,
 ) -> dict[str, list[str]]:
     """Find all valid Spelling Bee words, grouped by section.
 
     Args:
         letters: 7 uppercase letters; first is the main letter.
         show_profanity: Whether to include the profanity section.
-        no_acronyms: Whether to exclude the acronyms section.
+        hide_acronyms: Whether to exclude the acronyms section.
 
     Returns:
         Dict mapping section name to sorted list of words.
@@ -129,7 +130,7 @@ def solve(
     wordlist_sections.append(
         ("Proper nouns", WORDLISTS_DIR / "en_US_proper_nouns.txt")
     )
-    if not no_acronyms:
+    if not hide_acronyms:
         wordlist_sections.append(
             ("Acronyms", WORDLISTS_DIR / "en_US_acronyms.txt")
         )
@@ -200,7 +201,7 @@ def format_output(sections: dict[str, list[str]]) -> str:
 def main(argv: list[str] | None = None) -> None:
     """Entry point: parse args, solve the puzzle, print results."""
     args = parse_args(argv)
-    sections = solve(args.letters, args.show_profanity, args.no_acronyms)
+    sections = solve(args.letters, args.show_profanity, args.hide_acronyms)
     output = format_output(sections)
     if output:
         print(output)
