@@ -16,7 +16,6 @@
             "Bash(git merge:*)",
             "Bash(git reset:*)"
         ],
-        "disableBypassPermissionsMode": "disable",
-        "defaultMode": "acceptEdits"
+        "disableBypassPermissionsMode": "disable"
     }
 }
