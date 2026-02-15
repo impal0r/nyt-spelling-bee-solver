@@ -81,12 +81,14 @@ In this project, the aim is to find ALL words which would solve the puzzle. We u
 
 Single-letter words are excluded from all lists. When a word is produced by multiple stems with different classifications, higher-priority categories win (profanity > acronyms > proper nouns > common).
 
-### Source 2: words_alpha.txt (~370k words)
+### Source 2: words_alpha.txt (~416k words)
 
 **Source:** https://github.com/dwyl/english-words, with original credit to InfoChimps at
 https://web.archive.org/web/20131118073324/https://www.infochimps.com/datasets/word-list-350000-simple-english-words-excel-readable (archived).
 
-**File format:** Plain text, one lowercase word per line. No metadata or annotations. Can be read directly with simple line-by-line parsing.
+**How we generate it:** The upstream repo provides `words.txt` (~466k lines), which includes entries with numbers, hyphens, and other non-alpha characters. We filter it to alpha-only lines to produce `words_alpha.txt`, preserving original capitalization. (The upstream repo used to ship its own `words_alpha.txt`, but we regenerate it ourselves so we can preserve capitalization — the upstream version was lowercased.)
+
+**File format:** Plain text, one word per line, preserving original capitalization. No metadata or annotations. Can be read directly with simple line-by-line parsing.
 
 **Content:** An all-encompassing wordlist for spellcheckers, filtered to include words only made up of letters (no hyphens or other symbols).
 It lists a lot of words which would never show up in a dictionary.
