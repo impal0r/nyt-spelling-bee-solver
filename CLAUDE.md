@@ -8,24 +8,33 @@ A command-line solver for NYT Spelling Bee puzzles. Given 7 letters (first = req
 
 ## Commands
 
+Uses **uv** for dependency management. Either activate the venv first, or prefix commands with `uv run`.
+
 ```bash
+# Install/sync dependencies
+uv sync
+
 # Run tests (from repo root)
-python -m pytest tests/
+uv run python -m pytest tests/
 
 # Run a single test file
-python -m pytest tests/test_convert_dic.py
+uv run python -m pytest tests/test_convert_dic.py
 
 # Run a single test
-python -m pytest tests/test_convert_dic.py::TestApplyAffix::test_plural_regular
+uv run python -m pytest tests/test_convert_dic.py::TestApplyAffix::test_plural_regular
 
 # Spylls cross-validation tests (slow, requires spylls)
-python -m pytest tests/test_convert_dic.py::TestSpyllsCrossValidation
+uv run python -m pytest tests/test_convert_dic.py::TestSpyllsCrossValidation
 
 # Regenerate wordlists from Hunspell dictionary
-python convert_dic.py wordlists/en_US
+uv run python convert_dic.py wordlists/en_US
 
 # Lint
-python -m ruff check .
+uv run python -m ruff check .
+
+# Add a dependency
+uv add <package>
+uv add --group dev <package>
 ```
 
 ## Architecture
@@ -41,7 +50,7 @@ python -m ruff check .
 ## Key Decisions
 
 - Python 3.13+, no runtime dependencies. Dev deps: pytest, ruff, spylls (for cross-validation only).
-- Uses a `.venv` virtual environment. `pyproject.toml` sets `pythonpath = ["."]` so imports work from repo root.
+- Uses **uv** for dependency management with a `.venv` virtual environment. `pyproject.toml` sets `pythonpath = ["."]` so imports work from repo root.
 - Test files mirror source files in a `tests/` directory (e.g. `test_convert_dic.py` tests `convert_dic.py`).
 - Detailed code style rules are in `.claude/rules/code-style.md`.
 - Project plan with puzzle rules and output format spec is in `.claude/plans/initial-project-plan.md`.
